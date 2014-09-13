@@ -10,18 +10,17 @@
 'use strict';
 
 var _ = require('lodash');
-var sample = require('./sampleData.js');
 var grab = require('./grab.js');
 var request = require('request');
 var twitter = require('./twitter.js');
 
 // Get list of things
 exports.index = function(req, res) {
+
   var query = req.query.q;
 
   //our data
   var data = {};
-  // data.twitter = sample.tweets;
 
   //our toggle
   var toggle = {};
@@ -29,9 +28,15 @@ exports.index = function(req, res) {
   toggle.instagram = false;
   toggle.reddit = false;
 
+  //checks if all data have been received
   var checkToggle = function(){
     if(toggle.twitter === true && toggle.instagram === true && toggle.reddit === true){
-      res.send(data);
+      if (req.query.hasOwnProperty('callback')){
+        res.jsonp(data);
+      }
+      else{
+        res.send(data);
+      }
     }
   };
 
@@ -49,7 +54,8 @@ exports.index = function(req, res) {
     checkToggle();
   });
 
-    twitter.getTweets(query, function(result){
+  //grabbing twitter data
+  twitter.getTweets(query, function(result){
     data.twitter = result;
     toggle.twitter = true;
     checkToggle();
